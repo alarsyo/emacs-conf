@@ -50,6 +50,10 @@
 (use-package evil
   :config
   (evil-mode 1))
+(use-package which-key
+  :config
+  (which-key-mode 1))
+(use-package general)
 
 ;;; magit
 (use-package magit)
@@ -84,3 +88,49 @@
 (use-package rustic
   :config
   (setq rustic-lsp-format t))
+
+;;; keybindings
+(defconst my-leader "SPC")
+(defconst my-alt-leader "M-SPC")
+
+(general-create-definer my-leader-def
+  :keymaps 'override
+  :states '(insert emacs normal hybrid motion visual operator)
+  :prefix my-leader
+  :non-normal-prefix my-alt-leader)
+
+;; root leader shortcuts
+(my-leader-def
+  "SPC" #'find-file
+  ":" #'counsel-M-x
+
+  "f" #'find-file
+  "g" #'magit
+  "p" '(counsel-projectile-switch-project :which-key "switch project"))
+
+;; search subsection
+(general-create-definer my-global-search
+  :wrapping my-leader-def
+  :infix "s"
+  :wk-full-keys nil
+  "" '(:ignore t :which-key "search"))
+
+(my-global-search
+  "s" #'swiper
+  "p" #'counsel-projectile-rg)
+
+;; window subsection
+(general-create-definer my-global-window
+  :wrapping my-leader-def
+  :infix "w"
+  :wk-full-keys nil
+  "" '(:ignore t :which-key "window"))
+
+(my-global-window
+  "h" #'evil-window-left
+  "j" #'evil-window-down
+  "k" #'evil-window-up
+  "l" #'evil-window-right
+  "q" #'evil-quit
+  "s" #'evil-window-split
+  "v" #'evil-window-vsplit)
