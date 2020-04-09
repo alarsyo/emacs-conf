@@ -1,6 +1,8 @@
 #+TITLE: Emacs literal config
 #+OPTIONS: toc:4
 
+* Introduction
+
 This file contains my Emacs config. All code snippets present in this
 file are exported to a =config.el= file, and loaded by Emacs, thanks
 to the following code snippet in [[file+emacs:init.el][init.el]]:
@@ -99,7 +101,6 @@ from https://github.com/raxod502/straight.el#getting-started
 Here we install the main packages of our system, namely:
 
 | =doom-themes= | Loaded early so that our dark theme is displayed quickly |
-| =org=         | To get the latest up to date version                     |
 | =projectile=  | For project navigation                                   |
 | =evil=        | For Vim bindings                                         |
 | =which-key=   | To display binding hints                                 |
@@ -113,7 +114,6 @@ Here we install the main packages of our system, namely:
   (setq doom-themes-enable-bold t
 	doom-themes-enable-italic t)
   (load-theme 'doom-one t))
-(use-package org)
 (use-package projectile
   :config
   (projectile-mode 1))
@@ -216,6 +216,15 @@ enable format-on-save by setting =rustic-lsp-format= to =t=.
 (use-package rustic
   :config
   (setq rustic-lsp-format t))
+#+END_SRC
+
+* Org mode
+
+Org mode comes with Emacs already, but I want to get the latest
+version directly from the repository.
+
+#+BEGIN_SRC emacs-lisp
+(use-package org)
 #+END_SRC
 
 * Keybindings
