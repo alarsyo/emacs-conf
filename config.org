@@ -185,6 +185,12 @@ everything up.
 
 * Programming
 
+#+BEGIN_SRC emacs-lisp
+(setq-default indent-tabs-mode nil)
+#+END_SRC
+
+** LSP
+
 First we need =lsp-mode=, to support Language Server Protocol in any
 language package.
 
