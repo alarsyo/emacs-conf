@@ -1,0 +1,240 @@
+#+TITLE: Emacs literal config
+
+* Startup config
+
+First of all, enable [[https://www.emacswiki.org/emacs/DynamicBindingVsLexicalBinding][lexical binding]].
+
+#+BEGIN_SRC emacs-lisp
+;;; -*- lexical-binding: t; -*-
+#+END_SRC
+
+If we're in GUI mode, we hide useless GUI elements.
+
+#+BEGIN_SRC emacs-lisp
+(if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
+(if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
+(if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
+#+END_SRC
+
+Store custom variables in another file, we don't want our config to be
+polluted with those. Also allows us to =gitignore= this file.
+
+#+BEGIN_SRC emacs-lisp
+(setq custom-file
+      (expand-file-name "custom.el" user-emacs-directory))
+(unless (file-exists-p custom-file)
+  (write-region "" nil custom-file))
+(load custom-file)
+#+END_SRC
+
+We don't need the startup screen, this starts us directly in a
+=*scratch*= buffer.
+
+#+BEGIN_SRC emacs-lisp
+(setq inhibit-startup-screen t)
+#+END_SRC
+
+By default, Emacs generates =~backup= and =#autosave#= files. I don't
+like them because they pollute my working directory.
+
+#+BEGIN_SRC emacs-lisp
+(setq make-backup-files nil
+      auto-save-default nil)
+#+END_SRC
+
+* Packages system
+
+For package management, we'll use [[https://github.com/raxod502/straight.el][straight.el]], and [[https://github.com/jwiegley/use-package][use-package]].
+
+This variable tells =use-package= to fetch packages via =straight.el=
+by default.
+
+#+BEGIN_SRC emacs-lisp
+(setq straight-use-package-by-default t)
+#+END_SRC
+
+Here's the bootstrap code to install =straight.el=, copied straight
+from https://github.com/raxod502/straight.el#getting-started
+
+#+BEGIN_SRC emacs-lisp
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el"
+			 user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+#+END_SRC
+
+** Core packages
+
+Here we install the main packages of our system, namely:
+
+| =doom-themes= | Loaded early so that our dark theme is displayed quickly |
+| =org=         | To get the latest up to date version                     |
+| =projectile=  | For project navigation                                   |
+| =evil=        | For Vim bindings                                         |
+| =which-key=   | To display binding hints                                 |
+| =general=     | To setup our =SPC= leader key and related functionality  |
+
+#+BEGIN_SRC emacs-lisp
+(straight-use-package 'use-package)
+(use-package doom-themes
+  :config
+  ;; defaults
+  (setq doom-themes-enable-bold t
+	doom-themes-enable-italic t)
+  (load-theme 'doom-one t))
+(use-package org)
+(use-package projectile
+  :config
+  (projectile-mode 1))
+(use-package evil
+  :config
+  (evil-mode 1))
+(use-package which-key
+  :config
+  (which-key-mode 1))
+(use-package general)
+#+END_SRC
+
+*** Magit
+
+This is why I'm using Emacs. Magit is *THE* best git plugin I've ever used.
+
+#+BEGIN_SRC emacs-lisp
+(use-package magit)
+#+END_SRC
+
+And the Vim bindings to make it usable...
+
+#+BEGIN_SRC emacs-lisp
+(use-package evil-magit)
+#+END_SRC
+
+*** Ivy
+
+[[https://github.com/abo-abo/swiper][Ivy]] is a completion system, replacing the default one.
+
+#+BEGIN_SRC emacs-lisp
+(use-package ivy
+  :config
+  (ivy-mode 1)
+  (setq ivy-use-virtual-buffers t)
+  (setq enable-recursive-minibuffers t))
+#+END_SRC
+
+Counsel replaces many of Emacs's prompts to use Ivy instead...
+
+#+BEGIN_SRC emacs-lisp
+(use-package counsel
+  :config
+  (counsel-mode 1))
+#+end_src
+
+and can also integrate with Projectile!
+
+#+BEGIN_SRC emacs-lisp
+(use-package counsel-projectile)
+#+END_SRC
+
+Now that we have fancy search, we want fancy style and icons to go
+with it.
+
+#+BEGIN_SRC emacs-lisp
+(use-package ivy-rich
+  :config
+  (ivy-rich-mode 1))
+#+END_SRC
+
+Don't forget to run =M-x all-the-icons-install-fonts= when you set
+everything up.
+
+#+BEGIN_SRC emacs-lisp
+(use-package all-the-icons-ivy-rich
+  :config (all-the-icons-ivy-rich-mode 1))
+#+END_SRC
+
+* Programming
+
+First we need =lsp-mode=, to support Language Server Protocol in any
+language package.
+
+=lsp-mode= can be used standalone, but the user experience can be
+improved by other plugins, such as =company= for autocompletion, or
+=flycheck= for error reporting.
+
+#+BEGIN_SRC emacs-lisp
+(use-package company)
+(use-package flycheck)
+(use-package lsp-mode)
+(use-package lsp-ui)
+(use-package lsp-ivy)
+(use-package company-lsp)
+#+END_SRC
+
+** Rust
+
+For Rust, =rustic-mode= can handle everything for us. We just need to
+enable format-on-save by setting =rustic-lsp-format= to =t=.
+
+#+BEGIN_SRC emacs-lisp
+(use-package rustic
+  :config
+  (setq rustic-lsp-format t))
+#+END_SRC
+
+* Keybindings
+
+#+BEGIN_SRC emacs-lisp
+(defconst my-leader "SPC")
+(defconst my-alt-leader "M-SPC")
+
+(general-create-definer my-leader-def
+  :keymaps 'override
+  :states '(insert emacs normal hybrid motion visual operator)
+  :prefix my-leader
+  :non-normal-prefix my-alt-leader)
+
+;; root leader shortcuts
+(my-leader-def
+  "SPC" #'find-file
+  ":" #'counsel-M-x
+
+  "f" #'find-file
+  "g" #'magit
+  "p" '(counsel-projectile-switch-project :which-key "switch project"))
+
+;; search subsection
+(general-create-definer my-global-search
+  :wrapping my-leader-def
+  :infix "s"
+  :wk-full-keys nil
+  "" '(:ignore t :which-key "search"))
+
+(my-global-search
+  "s" #'swiper
+  "p" #'counsel-projectile-rg)
+
+;; window subsection
+(general-create-definer my-global-window
+  :wrapping my-leader-def
+  :infix "w"
+  :wk-full-keys nil
+  "" '(:ignore t :which-key "window"))
+
+(my-global-window
+  "h" #'evil-window-left
+  "j" #'evil-window-down
+  "k" #'evil-window-up
+  "l" #'evil-window-right
+  "q" #'evil-quit
+  "s" #'evil-window-split
+  "v" #'evil-window-vsplit)
+#+END_SRC
