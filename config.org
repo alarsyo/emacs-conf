@@ -1,5 +1,26 @@
 #+TITLE: Emacs literal config
 
+This file contains my Emacs config. All code snippets present in this
+file are exported to a =config.el= file, and loaded by Emacs, thanks
+to the following code snippet in [[file+emacs:init.el][init.el]]:
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq my/org-config
+      (expand-file-name "config.org" user-emacs-directory))
+(org-babel-load-file my/org-config)
+#+END_SRC
+
+This allows me to have a nice, always up-to-date documentation of my
+configuration.
+
+Note that this does increase startup time, as Org needs to build the
+=config.el= file everytime Emacs is started, however I like to use
+Emacs in [[https://www.emacswiki.org/emacs/EmacsAsDaemon][daemon mode]], so this isn't a problem for me.
+
+The alternative would be to [[https://www.gnu.org/software/emacs/manual/html_node/org/Extracting-source-code.html][tangle]] this file before starting emacs,
+but that would require to generate it again whenever I change
+something.
+
 * Startup config
 
 First of all, enable [[https://www.emacswiki.org/emacs/DynamicBindingVsLexicalBinding][lexical binding]].
