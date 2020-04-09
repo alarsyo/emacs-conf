@@ -1,4 +1,5 @@
 #+TITLE: Emacs literal config
+#+OPTIONS: toc:4
 
 This file contains my Emacs config. All code snippets present in this
 file are exported to a =config.el= file, and loaded by Emacs, thanks
